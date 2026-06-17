@@ -1,0 +1,57 @@
+[project]
+name = "udacity-ai-programming-project"
+description = "AI Programming with Python Nanodegree: Create Your Own Image Classifier"
+version = "0.1.0"
+authors = [
+    {name = "Robert ABEL", email = "robert.abel@cariad.technology"},
+]
+maintainers = [
+    {name = "Robert ABEL", email = "robert.abel@cariad.technology"},
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+license-files = [
+    "LICENSE",
+    "LICENSE-Udacity",
+]
+dependencies = [
+    "matplotlib~=3.11",
+    "numpy~=2.4",
+    "torch~=2.12",
+    "torchvision~=0.27.0",
+]
+requires-python = ">=3.13"
+classifiers = [
+    "License :: Other/Proprietary License",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.scripts]
+udacity-project-aipnd-classifier-train = "udacity.project.aipnd.classifier.train:main"
+udacity-project-aipnd-classifier-predict = "udacity.project.aipnd.classifier.predict:main"
+
+[dependency-groups]
+develop = [
+    "ipykernel~=7.2",
+    "ipywidgets~=8.1",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.build]
+package-dir = "src"
+source-includes = [
+    "cat_to_name.json",
+]
+includes = [
+    "src/udacity/",
+]
+
+[tool.pdm.build.wheel-data]
+data = [
+    {path = 'cat_to_name.json'},
+]
