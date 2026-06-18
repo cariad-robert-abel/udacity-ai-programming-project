@@ -1,0 +1,5 @@
+outs:
+- md5: 013620f7157057df25f8c3ee95d6922f
+  size: 471601849
+  hash: md5
+  path: vgg16-4096-6-0.0004.pth

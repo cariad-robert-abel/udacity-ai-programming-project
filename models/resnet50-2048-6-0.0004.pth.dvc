@@ -1,0 +1,5 @@
+outs:
+- md5: e1045304481c388e889bbd316685511b
+  size: 111978867
+  hash: md5
+  path: resnet50-2048-6-0.0004.pth
