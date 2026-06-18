@@ -1,0 +1,91 @@
+name: CLI Project
+
+on:
+  workflow_dispatch:
+    inputs:
+      model-architecture:
+        description: 'Model architecture to use for training'
+        type: choice
+        options:
+          - vgg16
+          - resnet50
+          - densenet121
+        default: vgg16
+      train-epochs:
+        description: 'Number of training epochs'
+        type: number
+        default: 2
+      hidden-units:
+        description: 'Number of hidden units in the classifier'
+        type: number
+        default: 512
+      learning-rate:
+        description: 'Learning rate for training'
+        type: number
+        default: 0.0004
+
+env:
+  JFROG_CLI_AVOID_NEW_VERSION_WARNING: 'TRUE'
+
+jobs:
+  train-classifier:
+    runs-on: auto-vm-u24-gpu
+    steps:
+      - name: Configure JFrog CLI (RW)
+        uses: e3alightww/configure-jfrog-cli@v1
+        with:
+          server-id: ctn-tensor-titans-rw
+          user: ${{ vars.JFROG_RT_CTN_TENSOR_TITANS_RW_USERNAME }}
+          access-token: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RW_TOKEN }}
+      - name: Install Python
+        uses: cariad-actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          artifactory-user: ${{ vars.JFROG_RT_CTN_TENSOR_TITANS_RO_USERNAME }}
+          artifactory-token: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RO_TOKEN }}
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+      - name: Install Dependencies
+        run: |
+          pip install --group cicd --group develop .
+      - name: Configure DVC
+        env:
+          DVC_BEARER_TOKEN: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RO_REFERENCE }}
+        run: |
+          dvc remote modify --local origin password "Bearer ${DVC_BEARER_TOKEN}"
+      - name: Unpack Flower Dataset
+        run: |
+          dvc pull flower_data.tar.gz
+          tar -xzf flower_data.tar.gz --one-top-level=flowers
+      - name: Download Model Weights
+        run: |
+          jf rt dl --flat ctn-tensor-titans-generic-internal/pytorch-models/${{ github.event.inputs.model-architecture }}-* ${{ runner.temp }}/torch/hub/checkpoints/
+      - name: Run Training
+        env:
+          TORCH_HOME: ${{ runner.temp }}/torch/
+        run: |
+          udacity-project-aipnd-classifier-train \
+          --gpu \
+          --arch=${{ github.event.inputs.model-architecture }} \
+          --epochs=${{ github.event.inputs.train-epochs }} \
+          --learning-rate=${{ github.event.inputs.learning-rate }} \
+          --hidden-units=${{ github.event.inputs.hidden-units }} \
+          flowers
+      - name: Run Inference
+        env:
+          TORCH_HOME: ${{ runner.temp }}/torch/
+        run: |
+          RANDOM_IMAGE="$(find flowers/test -type f | shuf -n 1)"
+          MODEL_CHECKPOINT="$(ls models/${{ github.event.inputs.model-architecture }}-*.pth)"
+          udacity-project-aipnd-classifier-predict \
+          --gpu \
+          --top-k=5 \
+          "${RANDOM_IMAGE}" \
+          "${MODEL_CHECKPOINT}"
+      - name: Upload Results
+        run: |
+          jf rt u --flat models/${{ github.event.inputs.model-architecture }}-*.pth ctn-tensor-titans-generic-internal/${{ github.event.repository.name }}/
+      - name: Post Configure DVC
+        if: always()
+        run: |
+          dvc remote modify --local origin --unset password
