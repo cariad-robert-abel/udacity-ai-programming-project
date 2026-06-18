@@ -17,3 +17,6 @@ dist/
 # 102 Category Flower Dataset
 /flowers/
 /flower_data.tar.gz
+
+# trained models
+/models/*.pth
