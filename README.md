@@ -15,6 +15,15 @@ inside a virtual environment:
 
 This will also install the necessary `udacity-project-aipnd-classifier-*` shims.
 
+### Training Data
+
+This project uses the "102 Category Flower Dataset" by Maria-Elena Nilsback and Andrew Zisserman
+(see [University of Oxford Visual Geometry Group Page](https://www.robots.ox.ac.uk/~vgg/data/flowers/102/))
+as made available by Udacity [here](https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz).
+
+The dataset is archived using [DVC](https://dvc.org/) and supposed to be extraced into the top-level
+`flowers` sub-directory prior to executing the Jupyter notebook resp. train/predic scripts.
+
 ## License
 
 Original files Copyright 2018 Udacity, Inc.

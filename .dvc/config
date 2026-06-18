@@ -1,0 +1,8 @@
+[core]
+    remote = origin
+['remote "origin"']
+    url = https://jfrog.hub.vwgroup.com/artifactory/ctn-tensor-titans-generic-internal/a6sc2d5-udacity-ai-programming-project-dvc
+    method = PUT
+    ssl_verify = true
+    auth = custom
+    custom_auth_header = Authorization

@@ -13,3 +13,7 @@ dist/
 
 # IDEs / editors
 .vscode/
+
+# 102 Category Flower Dataset
+/flowers/
+/flower_data.tar.gz

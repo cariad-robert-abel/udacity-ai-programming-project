@@ -1,0 +1,5 @@
+outs:
+- md5: ef5796b1436a740abe7d93d2f7f12d20
+  size: 344873452
+  hash: md5
+  path: flower_data.tar.gz
