@@ -33,6 +33,10 @@ udacity-project-aipnd-classifier-train = "udacity.project.aipnd.classifier.train
 udacity-project-aipnd-classifier-predict = "udacity.project.aipnd.classifier.predict:main"
 
 [dependency-groups]
+cicd = [
+    "dvc~=3.67.1",
+    "papermill~=2.7",
+]
 develop = [
     "ipykernel~=7.2",
     "ipywidgets~=8.1",

@@ -1,0 +1,71 @@
+name: Jupyter Project
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch-size:
+        description: 'Batch size for training'
+        type: number
+        default: 32
+      train-epochs:
+        description: 'Number of training epochs'
+        type: number
+        default: 2
+      learning-rate:
+        description: 'Learning rate for training'
+        type: number
+        default: 0.0004
+
+env:
+  JFROG_CLI_AVOID_NEW_VERSION_WARNING: 'TRUE'
+
+jobs:
+  train-classifier:
+    runs-on: auto-vm-u24-gpu
+    steps:
+      - name: Configure JFrog CLI (RW)
+        uses: e3alightww/configure-jfrog-cli@v1
+        with:
+          server-id: ctn-tensor-titans-rw
+          user: ${{ vars.JFROG_RT_CTN_TENSOR_TITANS_RW_USERNAME }}
+          access-token: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RW_TOKEN }}
+      - name: Install Python
+        uses: cariad-actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          artifactory-user: ${{ vars.JFROG_RT_CTN_TENSOR_TITANS_RO_USERNAME }}
+          artifactory-token: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RO_TOKEN }}
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+      - name: Install Dependencies
+        run: |
+          pip install --group cicd --group develop .
+      - name: Configure DVC
+        env:
+          DVC_BEARER_TOKEN: ${{ secrets.JFROG_RT_CTN_TENSOR_TITANS_RO_REFERENCE }}
+        run: |
+          dvc remote modify --local origin password "Bearer ${DVC_BEARER_TOKEN}"
+      - name: Unpack Flower Dataset
+        run: |
+          dvc pull flower_data.tar.gz
+          tar -xzf flower_data.tar.gz --one-top-level=flowers
+      - name: Download VGG16 Weights
+        run: |
+          jf rt dl --flat ctn-tensor-titans-generic-internal/pytorch-models/vgg16-* ${{ runner.temp }}/torch/hub/checkpoints/
+      - name: Run Project Notebook
+        env:
+          TORCH_HOME: ${{ runner.temp }}/torch/
+        run: |
+          papermill --log-level INFO \
+            --parameters BATCH_SIZE ${{ github.event.inputs.batch-size }} \
+            --parameters TRAIN_EPOCHS ${{ github.event.inputs.train-epochs }} \
+            --parameters LEARNING_RATE ${{ github.event.inputs.learning-rate }} \
+            "Image Classifier Project.ipynb" "project-${{ github.run_id }}-${{ github.run_attempt }}.ipynb"
+      - name: Upload Results
+        run: |
+          jf rt u        project-*.ipynb       ctn-tensor-titans-generic-internal/${{ github.event.repository.name }}/
+          jf rt u --flat models/checkpoint.pth ctn-tensor-titans-generic-internal/${{ github.event.repository.name }}/checkpoint-${{ github.run_id }}-${{ github.run_attempt }}.pth
+      - name: Post Configure DVC
+        if: always()
+        run: |
+          dvc remote modify --local origin --unset password
