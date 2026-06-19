@@ -20,7 +20,7 @@ from torch import nn, optim
 from torchvision import datasets, models, transforms
 
 
-IMAGENET_CROP_SIZE = 244
+IMAGENET_CROP_SIZE = 224
 """Crop size for ImageNet images"""
 IMAGENET_RESIZE = 256
 """Resize size prior to cropping for ImageNet images"""

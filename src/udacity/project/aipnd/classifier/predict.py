@@ -24,7 +24,7 @@ logger = logging.getLogger(__package__)
 
 def process_image(image: Image.Image) -> torch.Tensor:
     ''' Scales, crops, and normalizes a PIL image for a PyTorch model,
-        returns an Numpy array
+        returns a PyTorch tensor
     '''
     # resize using PIL
     w, h = image.size
